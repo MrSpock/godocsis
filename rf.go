@@ -72,6 +72,6 @@ func RFLevel(ip string) (*RFParams, error) {
        return &rfdata, error.New(err.Error())
    }
    rfdata.DSLevel = DSLevel
-   return &rfdata, error.New("")
+   return &rfdata, nil
 }
 
