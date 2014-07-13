@@ -6,19 +6,30 @@ This is very fresh topic. Look here in future :)
 example:
 ```
 package main
+
 import (
-    "github.com/MrSpock/godocsis"
+    "flag"
     "fmt"
-       )
-
-
+    "github.com/mrspock/godocsis"
+)
 
 func main() {
-        rfdata,err := rf.RFLevel("10.80.0.164")
-        if err != nil {
-            fmt.Println(err)
-        }
-        fmt.Println("DS level", rfdata.DSLevel, rfdata.DsBondingSize())
+    var ip string
+    flag.Parse()
+    if len(flag.Args()) < 1 {
+        // default IP - my defautl test modem  (3dc1)
+        ip = "10.80.0.164"
+    }
+    ip = flag.Args()[0]
+    rs, err := rf.RFLevel(ip)
+    if err != nil {
+        fmt.Println("Error")
+        panic(err)
+    }
+
+    fmt.Println("DS", rs.DSLevel, "\nDS Bonding size:", rs.DsBondingSize())
+    fmt.Println("US", rs.USLevel)
 }
+
 ```
 
