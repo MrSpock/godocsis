@@ -21,6 +21,7 @@ func (e *errorString) New(text string) error {
         return &errorString{text}
 }
 
+// Struct and methods for each retured object by this module
 type RFParams struct {
     DSLevel [] string
     USLevel [] int
@@ -34,6 +35,8 @@ func (rf *RFParams) UsBondingSize() int {
         return len(rf.USLevel)
 }
 
+
+// DOCS-IF-MIB::docsIfDownChannelPower
 const DsOid string = ".1.3.6.1.2.1.10.127.1.1.1.1.6"
 
 func snmpwalk(ip string, oid string) ([]string,error) {
