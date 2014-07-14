@@ -1,4 +1,4 @@
-package rf
+package godocsis
 
 import (
 	"errors"
@@ -7,21 +7,6 @@ import (
 	"strconv"
 )
 
-// // errorString is a trivial implementation of error.
-// type errorString struct {
-// 	s string
-// }
-
-// func (e *errorString) Error() string {
-// 	return e.s
-// }
-
-// // New returns an error that formats as the given text.
-// func (e *errorString) New(text string) error {
-// 	return &errorString{text}
-// }
-
-// Struct and methods for each retured object by this module
 type RFParams struct {
 	DSLevel []int
 	USLevel []int
@@ -29,16 +14,14 @@ type RFParams struct {
 
 func (rf *RFParams) DsBondingSize() int {
 	return len(rf.DSLevel)
+
 }
 
 func (rf *RFParams) UsBondingSize() int {
 	return len(rf.USLevel)
 }
 
-// DOCS-IF-MIB::docsIfDownChannelPower
-
-const DsOid string = ".1.3.6.1.2.1.10.127.1.1.1.1.6"
-const UsOid string = ".1.3.6.1.2.1.10.127.1.2.2.1.3"
+//const ResetOid string = ".1.3.6.1.2.1.69.1.1.3.0"
 
 func snmpwalk(ip string, oid string) ([]string, error) {
 	s, err := gosnmp.NewGoSNMP(ip, "public", gosnmp.Version2c, 5)
