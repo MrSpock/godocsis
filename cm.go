@@ -40,7 +40,7 @@ func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
 	for _, pdu := range response {
 		// For cablemodems I have ifIndex.1 contains embedded eRouter IP
 		if pdu.Value.(int) == 1 {
-			cm.IPaddr = strings.Trim(pdu.Name, IpAdEntIfIndex)
+			cm.RouterIP = strings.Trim(pdu.Name, IpAdEntIfIndex)
 		}
 	}
 	return cm, nil

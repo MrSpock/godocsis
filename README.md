@@ -38,7 +38,7 @@ func main() {
         fmt.Println("Error:", err)
         return
     }
-    fmt.Println(cm.IPaddr)
+    fmt.Println(cm.RouterIP)
 }
 
 ```
