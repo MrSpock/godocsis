@@ -3,61 +3,42 @@ package godocsis
 import (
 	"errors"
 	"fmt"
-	"github.com/alouca/gosnmp"
+	"github.com/soniah/gosnmp"
+	"log"
 	"strconv"
 )
 
-type RFParams struct {
-	DSLevel []int
-	USLevel []int
-}
+func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
 
-func (rf *RFParams) DsBondingSize() int {
-	return len(rf.DSLevel)
-
-}
-
-func (rf *RFParams) UsBondingSize() int {
-	return len(rf.USLevel)
-}
-
-//const ResetOid string = ".1.3.6.1.2.1.69.1.1.3.0"
-
-func snmpwalk(ip string, oid string) ([]string, error) {
-	s, err := gosnmp.NewGoSNMP(ip, "public", gosnmp.Version2c, 5)
+	err := session.Connect()
+	defer session.Conn.Close()
 	if err != nil {
-		return nil, errors.New("Error makeing SNMP connection")
+		log.Fatalf("Connect() err: %v", err)
+		return nil, fmt.Errorf("Connection error", err)
 	}
-	resp, err := s.Walk(oid)
+	response, err := session.WalkAll(oid) // Get() accepts up to g.MAX_OIDS
 	if err != nil {
-		return nil, errors.New("Error getting Oid")
+		log.Fatalf("Get() err: %v", err)
+		return nil, fmt.Errorf("Walk error - no such mib ?", err)
 	}
-	var result = make([]string, len(resp))
-	for i, pdu := range resp {
-		//switch pdu.Value {
-		//case gosnmp.OctetString:
-		//case gosnmp.Integer:
-		//result[i] = strconv.Itoa(pdu.Value)
-		responseValue := pdu.Value.(int)
-		//fmt.Println("Index:", i, ",Value:", responseValue)
-		result[i] = strconv.Itoa(responseValue)
-
-		//}
+	var result = make([]string, len(response))
+	for i, pdu := range response {
+		result[i] = strconv.Itoa(pdu.Value.(int))
 	}
 	return result, nil
 }
 
 func RFLevel(ip string) (*RFParams, error) {
-
+	session.Target = ip
 	var rfdata RFParams
-	DSLevel, err := snmpwalk(ip, DsOid)
+	DSLevel, err := snmpwalk(session, DsOid)
 	if err != nil {
 		fmt.Println("Error in RFLevel:", err)
 		return &rfdata, errors.New(err.Error())
 	}
 
 	rfdata.DSLevel = string2int_a(DSLevel)
-	USLevel, err := snmpwalk(ip, UsOid)
+	USLevel, err := snmpwalk(session, UsOid)
 	if err != nil {
 		return &rfdata, fmt.Errorf("Problem with US level retrieval: %s", err)
 	}
