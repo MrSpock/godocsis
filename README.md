@@ -18,7 +18,7 @@ func main() {
     var ip string
     flag.Parse()
     if len(flag.Args()) < 1 {
-        // default IP - my defautl test modem  (3dc1)
+        // default IP - my default test modem  (3dc1)
         ip = "10.80.0.164"
     }
     ip = flag.Args()[0]
@@ -30,6 +30,15 @@ func main() {
 
     fmt.Println("DS", rs.DSLevel, "\nDS Bonding size:", rs.DsBondingSize())
     fmt.Println("US", rs.USLevel)
+    // new method (will be aplied to RFLevel())
+    s := godocsis.Session
+    s.Target = ip
+    cm, err := godocsis.GetRouterIP(s)
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+    fmt.Println(cm.IPaddr)
 }
 
 ```
