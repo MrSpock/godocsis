@@ -3,6 +3,7 @@ package godocsis
 import (
 	"fmt"
 	"github.com/soniah/gosnmp"
+	"strconv"
 	"strings"
 )
 
@@ -44,4 +45,55 @@ func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
 		}
 	}
 	return cm, nil
+}
+
+func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
+	err := session.Connect()
+	defer session.Conn.Close()
+	if err != nil {
+		//log.Fatalf("Connect() err: %v", err)
+		return nil, fmt.Errorf("Connection error", err)
+	}
+	response, err := session.WalkAll(oid_cgConnectedDevices)
+	if err != nil {
+		return nil, fmt.Errorf("ERR GetConnetedDevices()", err)
+
+	}
+	devices := make([]cgConnectedDevices, len(response)/4)
+	for _, pdu := range response {
+		//fmt.Println(pdu.Name, pdu.Type, pdu.Value)
+		oid := strings.Split(pdu.Name, ".")
+		id, _ := strconv.Atoi(oid[len(oid)-1])
+		switch oid[len(oid)-2] {
+		case "2":
+			mac_byte := []byte(pdu.Value.(string))
+			// either my o library fuckup. Some mac are inproperly decoded to string
+			// I have to look into Decoding snmp library
+			// this is workaround
+			switch len(mac_byte) {
+			case 6:
+				devices[id-1].MacAddr = fmt.Sprintf("%X:%X:%X:%X:%X:%X", mac_byte[0], mac_byte[1], mac_byte[2], mac_byte[2], mac_byte[4], mac_byte[5])
+				//fmt.Println(mac_byte, pdu.Value)
+			case 17:
+				devices[id-1].MacAddr = strings.Replace(pdu.Value.(string), " ", ":", -1)
+			}
+		case "3":
+			devices[id-1].Name = pdu.Value.(string)
+		case "4":
+			devip_byte := []byte(pdu.Value.(string))
+			//var devip string
+			if len(devip_byte) == 4 {
+				devices[id-1].IPAddr = fmt.Sprintf("%d.%d.%d.%d", devip_byte[0], devip_byte[1], devip_byte[2], devip_byte[3])
+			} else {
+				devices[id-1].IPAddr = "ERR"
+			}
+
+		}
+	}
+
+	// fmt.Println("Device list:")
+	// for _, d := range devices {
+	// 	fmt.Println("DevName:", d.Name, "MAC:", d.MacAddr, "IP:", d.IPAddr)
+	// }
+	return devices, nil
 }

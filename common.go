@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	ResetOid       string = "1.3.6.1.2.1.69.1.1.3.0"
-	DsOid          string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
-	UsOid          string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
-	IpAdEntIfIndex string = "1.3.6.1.2.1.4.20.1.2"
+	ResetOid               string = "1.3.6.1.2.1.69.1.1.3.0"
+	DsOid                  string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
+	UsOid                  string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
+	IpAdEntIfIndex         string = "1.3.6.1.2.1.4.20.1.2"
+	oid_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13.2"
 )
 
 var Session = &gosnmp.GoSNMP{
@@ -26,6 +27,12 @@ type CM struct {
 	IPaddr   string
 	RouterIP string
 	RF       RFParams
+}
+type cgConnectedDevices struct {
+	MacAddr       string
+	Name          string
+	IPAddr        string
+	InterfaceType int
 }
 
 // basic structure used to hold misc CM RF parameters
@@ -62,4 +69,8 @@ func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
 		result[i] = strconv.Itoa(pdu.Value.(int))
 	}
 	return result, nil
+}
+
+func HexIPtoString() {
+
 }
