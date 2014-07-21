@@ -81,12 +81,7 @@ func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 			devices[id-1].Name = pdu.Value.(string)
 		case "4":
 			devip_byte := []byte(pdu.Value.(string))
-			//var devip string
-			if len(devip_byte) == 4 {
-				devices[id-1].IPAddr = fmt.Sprintf("%d.%d.%d.%d", devip_byte[0], devip_byte[1], devip_byte[2], devip_byte[3])
-			} else {
-				devices[id-1].IPAddr = "ERR"
-			}
+			devices[id-1].IPAddr, err = HexIPtoString(devip_byte)
 
 		}
 	}

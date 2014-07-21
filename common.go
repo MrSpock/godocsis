@@ -12,7 +12,7 @@ const (
 	DsOid                  string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
 	UsOid                  string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
 	IpAdEntIfIndex         string = "1.3.6.1.2.1.4.20.1.2"
-	oid_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13.2"
+	oid_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13"
 )
 
 var Session = &gosnmp.GoSNMP{
@@ -23,11 +23,14 @@ var Session = &gosnmp.GoSNMP{
 	Retries:   2,
 }
 
+// cable modem structure
 type CM struct {
 	IPaddr   string
 	RouterIP string
 	RF       RFParams
+	Devices  []cgConnectedDevices
 }
+
 type cgConnectedDevices struct {
 	MacAddr       string
 	Name          string
@@ -71,6 +74,16 @@ func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
 	return result, nil
 }
 
-func HexIPtoString() {
+func HexIPtoString(octet_a []byte) (string, error) {
+	if len(octet_a) == 4 {
+		return fmt.Sprintf("%d.%d.%d.%d", octet_a[0], octet_a[1], octet_a[2], octet_a[3]), nil
+	} else {
+		return "", fmt.Errorf("Unable to make conversion. 4 bytes required")
+	}
+}
 
+func PanicIf(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
