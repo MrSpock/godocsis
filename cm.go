@@ -3,6 +3,7 @@ package godocsis
 import (
 	"fmt"
 	"github.com/soniah/gosnmp"
+	"net"
 	"strconv"
 	"strings"
 )
@@ -72,16 +73,21 @@ func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 			// this is workaround
 			switch len(mac_byte) {
 			case 6:
-				devices[id-1].MacAddr = fmt.Sprintf("%X:%X:%X:%X:%X:%X", mac_byte[0], mac_byte[1], mac_byte[2], mac_byte[2], mac_byte[4], mac_byte[5])
+				//devices[id-1].MacAddr = fmt.Sprintf("%X:%X:%X:%X:%X:%X", mac_byte[0], mac_byte[1], mac_byte[2], mac_byte[2], mac_byte[4], mac_byte[5])
+				devices[id-1].MacAddr = []byte(mac_byte)
 				//fmt.Println(mac_byte, pdu.Value)
 			case 17:
-				devices[id-1].MacAddr = strings.Replace(pdu.Value.(string), " ", ":", -1)
+				mac, err := net.ParseMAC(strings.Replace(pdu.Value.(string), " ", ":", -1))
+				if err != nil {
+					fmt.Errorf("ERR: MAC parse error", err)
+				}
+				devices[id-1].MacAddr = mac
 			}
 		case "3":
 			devices[id-1].Name = pdu.Value.(string)
 		case "4":
 			devip_byte := []byte(pdu.Value.(string))
-			devices[id-1].IPAddr, err = HexIPtoString(devip_byte)
+			devices[id-1].IPAddr = devip_byte
 
 		}
 	}

@@ -3,6 +3,7 @@ package godocsis
 import (
 	"fmt"
 	"github.com/soniah/gosnmp"
+	"net"
 	"strconv"
 	"time"
 )
@@ -31,10 +32,11 @@ type CM struct {
 	Devices  []cgConnectedDevices
 }
 
+//type HardwareAddr []byte
 type cgConnectedDevices struct {
-	MacAddr       string
+	MacAddr       net.HardwareAddr
 	Name          string
-	IPAddr        string
+	IPAddr        net.IP
 	InterfaceType int
 }
 
