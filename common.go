@@ -32,6 +32,7 @@ type CM struct {
 	Devices  []cgConnectedDevices
 }
 
+// type for holding data related to customer devices connected to cable modem
 type cgConnectedDevices struct {
 	MacAddr       net.HardwareAddr
 	Name          string
@@ -39,7 +40,7 @@ type cgConnectedDevices struct {
 	InterfaceType int
 }
 
-// basic structure used to hold misc CM RF parameters
+// Basic structure used to hold misc CM RF parameters
 type RFParams struct {
 	DSLevel []int
 	USLevel []int
