@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+// Return Cable modem struct with filled fields related to CM RF parameters
+// This will work on any cable modem since those are generic DOCSIS MIBS
 func RFLevel(session *gosnmp.GoSNMP) (CM, error) {
 	//Session.Target = ip
 	var cm CM
@@ -28,7 +30,7 @@ func RFLevel(session *gosnmp.GoSNMP) (CM, error) {
 	return cm, nil
 }
 
-// helpers
+// convert string to slice of integer values
 func string2int_a(arstring []string) []int {
 	rs := make([]int, len(arstring))
 	for i, value := range arstring {

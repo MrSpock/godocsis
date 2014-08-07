@@ -32,7 +32,6 @@ type CM struct {
 	Devices  []cgConnectedDevices
 }
 
-//type HardwareAddr []byte
 type cgConnectedDevices struct {
 	MacAddr       net.HardwareAddr
 	Name          string
@@ -56,6 +55,7 @@ func (rf *RFParams) UsBondingSize() int {
 }
 
 //type WalkFunc func(dataUnit gosnmp.SnmpPDU) []string, error)
+//generic SNMPWalk function to walk over SNMP tree
 func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
 
 	err := session.Connect()
@@ -76,6 +76,8 @@ func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
 	return result, nil
 }
 
+// legacy helper function to convert []byte array to human readable form of IP
+// currently this is handled by net/ip package functions
 func HexIPtoString(octet_a []byte) (string, error) {
 	if len(octet_a) == 4 {
 		return fmt.Sprintf("%d.%d.%d.%d", octet_a[0], octet_a[1], octet_a[2], octet_a[3]), nil
@@ -84,6 +86,7 @@ func HexIPtoString(octet_a []byte) (string, error) {
 	}
 }
 
+// wrapper for commonly used code for handling errors
 func PanicIf(err error) {
 	if err != nil {
 		panic(err)

@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// Reset cable modem by setting docsDevResetNow.0 to one
+// This will make cable modem to reinitialize itself
+// The only param is cable modem IP address string
 func ResetCm(host string) error {
 	Session.Target = host
 	Session.Community = "private"
@@ -25,6 +28,8 @@ func ResetCm(host string) error {
 	return nil
 }
 
+// For cable modems with Router built-in this will return e-Router CPE
+// external IP address used for NAT all user traffic
 func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
 	var cm CM
 	err := session.Connect()
@@ -48,6 +53,8 @@ func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
 	return cm, nil
 }
 
+// For TC7200 cable modems this will return list of devicess connected to its LAN
+// side. Both WiFi and Wired devices are listed
 func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	err := session.Connect()
 	defer session.Conn.Close()
