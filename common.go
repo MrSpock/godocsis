@@ -1,3 +1,7 @@
+// godocsis is package providing misceleaneous functions and few binaries
+// that are usefull for users/admins DOCSIS based networks
+// Currently all functions are cable modem related.
+// TODO is to add support for concurency and some CMTS support
 package godocsis
 
 import (
