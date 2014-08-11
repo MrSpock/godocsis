@@ -23,7 +23,7 @@ func ResetCm(host string) error {
 	//fmt.Println(pdu)
 	_, err = Session.Set(pdu)
 	if err != nil {
-		return fmt.Errorf("Unable to set reset OID (not cable modem)", err)
+		return fmt.Errorf("Unable to set reset OID: ", err)
 	}
 	return nil
 }
