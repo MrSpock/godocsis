@@ -35,7 +35,7 @@ func main() {
 			}
 		}
 	}
-	os.Exit(1)
+	os.Exit(0)
 }
 
 func Help(name string) {
