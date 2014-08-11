@@ -8,7 +8,9 @@ import (
 	"os"
 )
 
-const VERSION = 1.0.2
+const (
+	VERSION string = "1.0.2"
+)
 
 func main() {
 	//var ip string
@@ -41,5 +43,5 @@ func main() {
 }
 
 func Help(name string) {
-	fmt.Fprintf(os.Stderr, "======= Cable Modem restarter by Spock (BSD) ver. %s ========\nUsage: %s cm1_ipaddr cm2_ipaddr\n============================================\n",VERSION, name)
+	fmt.Fprintf(os.Stderr, "======= Cable Modem restarter by Spock (BSD) ver %s ========\nUsage: %s cm1_ipaddr cm2_ipaddr\n============================================\n", VERSION, name)
 }
