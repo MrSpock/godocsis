@@ -12,12 +12,48 @@ import (
 	"time"
 )
 
+type Protocol uint
+
+func (p Protocol) String() string {
+	return strconv.Itoa(int(p))
+}
+
+func (p Protocol) Value() int {
+	return int(p)
+}
+
 const (
 	ResetOid               string = "1.3.6.1.2.1.69.1.1.3.0"
 	DsOid                  string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
 	UsOid                  string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
 	IpAdEntIfIndex         string = "1.3.6.1.2.1.4.20.1.2"
 	oid_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13"
+)
+
+const (
+	oid_docsDevSwServer      string = ".1.3.6.1.2.1.69.1.3.1.0"
+	oid_docsDevSwFilename    string = ".1.3.6.1.2.1.69.1.3.2.0"
+	oid_docsDevSwAdminStatus string = ".1.3.6.1.2.1.69.1.3.3.0"
+)
+
+// list of oids for forwarding table in TC7200
+const (
+	oid_tc7200_cgUiAdvancedForwardingPortStartValue         string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.2"
+	oid_tc7200_cgUiAdvancedForwardingPortEndValue           string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.3"
+	oid_tc7200_cgUiAdvancedForwardingProtocolType           string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.4"
+	oid_tc7200_cgUiAdvancedForwardingIpAddrType             string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.5"
+	oid_tc7200_cgUiAdvancedForwardingIpAddr                 string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.6"
+	oid_tc7200_cgUiAdvancedForwardingEnabled                string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.7"
+	oid_tc7200_cgUiAdvancedForwardingRowStatus              string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.8"
+	oid_tc7200_cgUiAdvancedForwardingPortInternalStartValue string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.9"
+	oid_tc7200_cgUiAdvancedForwardingPortInternalEndValue   string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.10"
+	oid_tc7200_cgUiAdvancedForwardingRemoteIpAddr           string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.11"
+	oid_tc7200_cgUiAdvancedForwardingDescription            string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.12"
+)
+const (
+	Both Protocol = 1
+	Tcp  Protocol = 2
+	Udp  Protocol = 3
 )
 
 var Session = &gosnmp.GoSNMP{
@@ -42,6 +78,70 @@ type cgConnectedDevices struct {
 	Name          string
 	IPAddr        net.IP
 	InterfaceType int
+}
+
+type CgForwardingOid struct {
+	ExtPortStart        string
+	ExtPortEnd          string
+	ProtocolType        string
+	IpAddrType          string
+	LocalIP             string
+	ForwardingEnabled   string
+	ForwardingRowStatus string
+	LocalPortStart      string
+	LocalPortEnd        string
+	RuleName            string
+}
+
+var TC7200ForwardingTree = &CgForwardingOid{
+	oid_tc7200_cgUiAdvancedForwardingPortStartValue,
+	oid_tc7200_cgUiAdvancedForwardingPortEndValue,
+	oid_tc7200_cgUiAdvancedForwardingProtocolType,
+	oid_tc7200_cgUiAdvancedForwardingIpAddrType,
+	oid_tc7200_cgUiAdvancedForwardingIpAddr,
+	oid_tc7200_cgUiAdvancedForwardingEnabled,
+	oid_tc7200_cgUiAdvancedForwardingRowStatus,
+	oid_tc7200_cgUiAdvancedForwardingPortInternalStartValue,
+	oid_tc7200_cgUiAdvancedForwardingPortInternalEndValue,
+	oid_tc7200_cgUiAdvancedForwardingDescription,
+}
+
+type CgForwardRule struct {
+	LocalIP        net.IP
+	LocalPortStart uint
+	LocalPortEnd   uint
+	ExtPortStart   uint
+	ExtPortEnd     uint
+	RuleName       string
+	ProtocolType   Protocol
+}
+
+func (p *CgForwardRule) Validate() (err error) {
+	if p.LocalPortStart == 0 {
+		err = fmt.Errorf("LocalPortStart can't be 0")
+	}
+	if p.ExtPortStart == 0 {
+		err = fmt.Errorf("ExtPortStart can't be 0")
+	}
+	if p.LocalPortEnd == 0 {
+		p.LocalPortEnd = p.LocalPortStart
+	}
+	if p.ExtPortEnd == 0 {
+		p.ExtPortEnd = p.ExtPortStart
+	}
+	if p.LocalPortStart > p.LocalPortEnd {
+		err = fmt.Errorf("LocalPortStart can't be higher than LocalPortEnd")
+	}
+	if p.ExtPortStart > p.ExtPortEnd {
+		err = fmt.Errorf("ExtPortStart can't be higher than ExtPortEnd")
+	}
+	if len(p.RuleName) == 0 {
+		err = fmt.Errorf("RuleName can't be empty")
+	}
+	if p.ProtocolType == 0 {
+		p.ProtocolType = Both
+	}
+	return
 }
 
 // Basic structure used to hold misc CM RF parameters

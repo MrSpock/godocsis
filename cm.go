@@ -105,3 +105,39 @@ func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	// }
 	return devices, nil
 }
+
+//request cable modem upgrade
+//params are gosnmp.GoSNMP object, server IP address (string) and path relative to tftp root (string)
+func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err error) {
+	if len(session.Community) == 0 {
+		// set default community if none is set
+		session.Community = "private"
+	}
+	err = Session.Connect()
+	defer Session.Conn.Close()
+	if err != nil {
+		return
+	}
+	// gosnmp supports only one set at request
+	pdu := make([]gosnmp.SnmpPDU, 1)
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwServer, gosnmp.OctetString, server}
+	_, err = session.Set(pdu)
+	if err != nil {
+		return
+	}
+
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwFilename, gosnmp.OctetString, filename}
+	_, err = session.Set(pdu)
+	if err != nil {
+		return
+	}
+	// docsDevSwAdminStatus.0 = 1 -> start upgrade (upgradeFromMgt(1))
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwAdminStatus, gosnmp.Integer, 1}
+	_, err = session.Set(pdu)
+	if err != nil {
+		return
+	}
+	//fmt.Println(pdu)
+	//_, err = session.Set(pdu)
+	return
+}
