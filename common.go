@@ -9,6 +9,7 @@ import (
 	"github.com/soniah/gosnmp"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -196,4 +197,10 @@ func PanicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func AddOidSuffix(oid string, suffix int) (finalOid string) {
+	data := []string{oid, strconv.Itoa(suffix)}
+	finalOid = strings.Join(data, ".")
+	return
 }
