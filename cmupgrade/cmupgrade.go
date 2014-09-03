@@ -34,7 +34,7 @@ func main() {
 			snmp := godocsis.Session
 			snmp.Community = "private"
 			snmp.Target = address
-			err := godocsis.CmUpgrade(snmp, server, path)
+			err := godocsis.CmUpgrade(&snmp, server, path)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				//os.Exit(1)
