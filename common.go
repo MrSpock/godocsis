@@ -8,12 +8,22 @@ import (
 	"fmt"
 	"github.com/soniah/gosnmp"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type Protocol uint
+type IPAddrType_t int
+
+func (r IPAddrType_t) String() string {
+	if r == 1 {
+		return "ipv4(1)"
+	} else {
+		return "unknown()"
+	}
+}
 
 func (p Protocol) String() string {
 	return strconv.Itoa(int(p))
@@ -35,6 +45,7 @@ const (
 	oid_docsDevSwServer      string = ".1.3.6.1.2.1.69.1.3.1.0"
 	oid_docsDevSwFilename    string = ".1.3.6.1.2.1.69.1.3.2.0"
 	oid_docsDevSwAdminStatus string = ".1.3.6.1.2.1.69.1.3.3.0"
+	oid_docsDevSwCurrentVers string = ".1.3.6.1.2.1.69.1.3.5.0"
 )
 
 // list of oids for forwarding table in TC7200
@@ -50,19 +61,37 @@ const (
 	oid_tc7200_cgUiAdvancedForwardingPortInternalEndValue   string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.10"
 	oid_tc7200_cgUiAdvancedForwardingRemoteIpAddr           string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.11"
 	oid_tc7200_cgUiAdvancedForwardingDescription            string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.12"
+	oid_tc7200_cgUiAdvancedForwardingRemove                 string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.13"
 )
+
+var TC7200ForwardingTree = &CgForwardingOid{
+	oid_tc7200_cgUiAdvancedForwardingPortStartValue,
+	oid_tc7200_cgUiAdvancedForwardingPortEndValue,
+	oid_tc7200_cgUiAdvancedForwardingProtocolType,
+	oid_tc7200_cgUiAdvancedForwardingIpAddrType,
+	oid_tc7200_cgUiAdvancedForwardingIpAddr,
+	oid_tc7200_cgUiAdvancedForwardingEnabled,
+	oid_tc7200_cgUiAdvancedForwardingRowStatus,
+	oid_tc7200_cgUiAdvancedForwardingPortInternalStartValue,
+	oid_tc7200_cgUiAdvancedForwardingPortInternalEndValue,
+	oid_tc7200_cgUiAdvancedForwardingRemoteIpAddr,
+	oid_tc7200_cgUiAdvancedForwardingDescription,
+}
+
 const (
 	Both Protocol = 1
 	Tcp  Protocol = 2
 	Udp  Protocol = 3
 )
 
-var Session = &gosnmp.GoSNMP{
+const IPv4 IPAddrType_t = 1
+
+var Session = gosnmp.GoSNMP{
 	Port:      161,
 	Community: "public",
 	Version:   gosnmp.Version2c,
-	Timeout:   time.Duration(1) * time.Second,
-	Retries:   2,
+	Timeout:   time.Duration(2) * time.Second,
+	Retries:   1,
 }
 
 // cable modem structure
@@ -91,30 +120,19 @@ type CgForwardingOid struct {
 	ForwardingRowStatus string
 	LocalPortStart      string
 	LocalPortEnd        string
+	ExtIP               string
 	RuleName            string
-}
-
-var TC7200ForwardingTree = &CgForwardingOid{
-	oid_tc7200_cgUiAdvancedForwardingPortStartValue,
-	oid_tc7200_cgUiAdvancedForwardingPortEndValue,
-	oid_tc7200_cgUiAdvancedForwardingProtocolType,
-	oid_tc7200_cgUiAdvancedForwardingIpAddrType,
-	oid_tc7200_cgUiAdvancedForwardingIpAddr,
-	oid_tc7200_cgUiAdvancedForwardingEnabled,
-	oid_tc7200_cgUiAdvancedForwardingRowStatus,
-	oid_tc7200_cgUiAdvancedForwardingPortInternalStartValue,
-	oid_tc7200_cgUiAdvancedForwardingPortInternalEndValue,
-	oid_tc7200_cgUiAdvancedForwardingDescription,
 }
 
 type CgForwardRule struct {
 	LocalIP        net.IP
-	LocalPortStart uint
-	LocalPortEnd   uint
-	ExtPortStart   uint
-	ExtPortEnd     uint
+	LocalPortStart int
+	LocalPortEnd   int
+	ExtPortStart   int
+	ExtPortEnd     int
 	RuleName       string
 	ProtocolType   Protocol
+	IPAddrType     IPAddrType_t
 }
 
 func (p *CgForwardRule) Validate() (err error) {
@@ -126,6 +144,7 @@ func (p *CgForwardRule) Validate() (err error) {
 	}
 	if p.LocalPortEnd == 0 {
 		p.LocalPortEnd = p.LocalPortStart
+		//fmt.Fprintf(os.Stderr, "WARN: LocalEndPort not set. Assuming the same value like LocalStartPort\n")
 	}
 	if p.ExtPortEnd == 0 {
 		p.ExtPortEnd = p.ExtPortStart
@@ -141,6 +160,10 @@ func (p *CgForwardRule) Validate() (err error) {
 	}
 	if p.ProtocolType == 0 {
 		p.ProtocolType = Both
+	}
+	if p.IPAddrType == 0 {
+		p.IPAddrType = 1
+		fmt.Fprintf(os.Stderr, "WARN: Default IP addr type used (ipv4(1))\n")
 	}
 	return
 }
@@ -162,24 +185,34 @@ func (rf *RFParams) UsBondingSize() int {
 
 //type WalkFunc func(dataUnit gosnmp.SnmpPDU) []string, error)
 //generic SNMPWalk function to walk over SNMP tree
-func snmpwalk(session *gosnmp.GoSNMP, oid string) ([]string, error) {
+func snmpwalk(session gosnmp.GoSNMP, oid string) ([]string, error) {
 
 	err := session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
 		//log.Fatalf("Connect() err: %v", err)
-		return nil, fmt.Errorf("Connection error", err)
+		return nil, fmt.Errorf("snmpwalk() Connection error: %s", err)
 	}
 	response, err := session.WalkAll(oid) // Get() accepts up to g.MAX_OIDS
 	if err != nil {
 		//log.Fatalf("Get() err: %v", err)
-		return nil, fmt.Errorf("Walk error - no such mib ?", err)
+		return nil, fmt.Errorf("snmpwalk(): %s", err)
 	}
 	var result = make([]string, len(response))
 	for i, pdu := range response {
 		result[i] = strconv.Itoa(pdu.Value.(int))
 	}
 	return result, nil
+}
+
+func snmpset(session gosnmp.GoSNMP, pdus []gosnmp.SnmpPDU) (err error) {
+	err = session.Connect()
+	defer session.Conn.Close()
+	if err != nil {
+		return
+	}
+	_, err = session.Set(pdus)
+	return
 }
 
 // legacy helper function to convert []byte array to human readable form of IP

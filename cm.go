@@ -16,38 +16,37 @@ func ResetCm(host string) error {
 	Session.Community = "private"
 	err := Session.Connect()
 	if err != nil {
-		return fmt.Errorf("Unable to connect:", err)
+		return fmt.Errorf("Unable to connect: %s", err)
 	}
 	defer Session.Conn.Close()
 	pdu := []gosnmp.SnmpPDU{gosnmp.SnmpPDU{ResetOid, gosnmp.Integer, 1}}
 	//fmt.Println(pdu)
 	_, err = Session.Set(pdu)
 	if err != nil {
-		return fmt.Errorf("Unable to set reset OID: ", err)
+		return fmt.Errorf("Unable to set reset OID: %s", err)
 	}
 	return nil
 }
 
 // For cable modems with Router built-in this will return e-Router CPE
 // external IP address used for NAT all user traffic
-func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
-	var cm CM
-	err := session.Connect()
+func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
+	err = session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
 		//log.Fatalf("Connect() err: %v", err)
-		return cm, fmt.Errorf("Connection error", err)
+		return cm, fmt.Errorf("Connection error: %s", err)
 	}
 	response, err := session.WalkAll(IpAdEntIfIndex) //
 	if err != nil {
 		//log.Fatalf("Get() err: %v", err)
-		return cm, fmt.Errorf("Walk error - no such mib ?", err)
+		return cm, fmt.Errorf("Walk error: %s", err)
 	}
 
 	for _, pdu := range response {
 		// For cablemodems I have ifIndex.1 contains embedded eRouter IP
 		if pdu.Value.(int) == 1 {
-			cm.RouterIP = strings.Trim(pdu.Name, IpAdEntIfIndex)
+			cm.RouterIP = strings.Replace(pdu.Name, "."+IpAdEntIfIndex+".", "", 1)
 		}
 	}
 	return cm, nil
@@ -55,17 +54,17 @@ func GetRouterIP(session *gosnmp.GoSNMP) (CM, error) {
 
 // For TC7200 cable modems this will return list of devicess connected to its LAN
 // side. Both WiFi and Wired devices are listed
-func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
+func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	var mac_byte []byte
 	err := session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
 		//log.Fatalf("Connect() err: %v", err)
-		return nil, fmt.Errorf("Connection error", err)
+		return nil, fmt.Errorf("ERR GetConnetedDevices() Connection error: %s", err)
 	}
 	response, err := session.WalkAll(oid_cgConnectedDevices)
 	if err != nil {
-		return nil, fmt.Errorf("ERR GetConnetedDevices()", err)
+		return nil, fmt.Errorf("ERR GetConnetedDevices() WalkAll: %s", err)
 
 	}
 	devices := make([]cgConnectedDevices, len(response)/4)
@@ -110,7 +109,7 @@ func GetConnetedDevices(session *gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	return devices, nil
 }
 
-func CmGetNetiaPlayerList(session *gosnmp.GoSNMP) (npList []cgConnectedDevices, err error) {
+func CmGetNetiaPlayerList(session gosnmp.GoSNMP) (npList []cgConnectedDevices, err error) {
 	allDevices, err := GetConnetedDevices(session)
 	if err != nil {
 		return
@@ -131,8 +130,8 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 		session.Community = "private"
 	}
 
-	err = Session.Connect()
-	defer Session.Conn.Close()
+	err = session.Connect()
+	defer session.Conn.Close()
 	if err != nil {
 		return
 	}
@@ -174,7 +173,7 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 // 	RuleName            string
 // }
 //
-func CmGetFwdRuleCount(session *gosnmp.GoSNMP, oids *CgForwardingOid) (count int, err error) {
+func CmGetFwdRuleCount(session gosnmp.GoSNMP, oids *CgForwardingOid) (count int, err error) {
 	count = 0
 	if len(session.Community) == 0 {
 		// set default community if none is set
@@ -184,7 +183,7 @@ func CmGetFwdRuleCount(session *gosnmp.GoSNMP, oids *CgForwardingOid) (count int
 	defer session.Conn.Close()
 	if err != nil {
 		//log.Fatalf("Connect() err: %v", err)
-		return 0, fmt.Errorf("Connection error", err)
+		return 0, fmt.Errorf("CmGetFwdRuleCount() Connection error: %s", err)
 	}
 	response, err := session.WalkAll(oids.ExtPortStart)
 	for _, pdu := range response {
@@ -199,7 +198,7 @@ func CmGetFwdRuleCount(session *gosnmp.GoSNMP, oids *CgForwardingOid) (count int
 	return 1, err
 }
 
-func CmSetForwardRule(session *gosnmp.GoSNMP, rule CgForwardRule, oids *CgForwardingOid) (err error) {
+func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwardingOid) (err error) {
 	err = rule.Validate()
 	if err != nil {
 		return
@@ -208,37 +207,110 @@ func CmSetForwardRule(session *gosnmp.GoSNMP, rule CgForwardRule, oids *CgForwar
 		// set default community if none is set
 		session.Community = "private"
 	}
-	err = Session.Connect()
-	defer Session.Conn.Close()
+	err = session.Connect()
+	defer session.Conn.Close()
 	if err != nil {
 		return
 	}
 	ruleNo, err := CmGetFwdRuleCount(session, oids)
+	if ruleNo == 0 {
+		ruleNo = 1
+	}
 	pdu := make([]gosnmp.SnmpPDU, 1)
+	//fmt.Printf("SET ExtPortStart: %d, ", rule.ExtPortStart)
+	fmt.Printf("SET: . ")
+	// session.Connect()
+	// defer session.Conn.Close()
 	//Ext Port Start
 	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortStart, ruleNo), gosnmp.Integer, rule.ExtPortStart}
+	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
+	//fmt.Printf("ExtPortEnd: %d, ", rule.ExtPortEnd)
+	fmt.Printf(". ")
 	// Ext Port End
 	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortEnd, ruleNo), gosnmp.Integer, rule.ExtPortEnd}
+	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
-	//Local Port Start
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortStart, ruleNo), gosnmp.Integer, rule.LocalPortStart}
+	//fmt.Printf("ProtocolType: %s, ", rule.ProtocolType)
+	fmt.Printf(". ")
+	// Ext Port End
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ProtocolType, ruleNo), gosnmp.Integer, int(rule.ProtocolType)}
+	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
-	// Local Port End
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortEnd, ruleNo), gosnmp.Integer, rule.LocalPortEnd}
-	_, err = session.Set(pdu)
+	//fmt.Printf("IpAddrType: %s, ", rule.IPAddrType.String())
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.IpAddrType, ruleNo), gosnmp.Integer, int(rule.IPAddrType)}
+	//_, err = session.Set(pdu)
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+	//fmt.Printf("LocalIP: %s, ", rule.LocalIP)
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalIP, ruleNo), gosnmp.OctetString, []byte(rule.LocalIP)[12:]}
+	//_, err = session.Set(pdu)
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+	//fmt.Printf("EnableRule: (1)")
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingEnabled, ruleNo), gosnmp.Integer, 1}
+	err = snmpset(session, pdu)
 	if err != nil {
 		return
 	}
 
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingRowStatus, ruleNo), gosnmp.Integer, 3}
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+	//Local Port Start
+	//fmt.Printf("LocalPortStart: %d, ", rule.LocalPortStart)
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortStart, ruleNo), gosnmp.Integer, rule.LocalPortStart}
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+	// Local Port End
+	//fmt.Printf("LocalPortEnd: %d, ", rule.LocalPortEnd)
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortEnd, ruleNo), gosnmp.Integer, rule.LocalPortEnd}
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+
+	/* To wygląda na nie wymagane */
+	//fmt.Printf("ExtIP: %s, ", "0.0.0.0"
+	fmt.Printf(". ")
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtIP, ruleNo), gosnmp.OctetString, []byte{0, 0, 0, 0}}
+	//_, err = session.Set(pdu)
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+
+	//fmt.Printf("Description: %s, ", rule.RuleName)
+	fmt.Printf(". ")
+	//fmt.Println(oids.RuleName)
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.RuleName, ruleNo), gosnmp.OctetString, rule.RuleName}
+	err = snmpset(session, pdu)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("")
 	return
 }
