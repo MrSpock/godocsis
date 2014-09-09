@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION string = "1.0.0"
+	VERSION string = "1.0.1"
 	AUTHOR  string = "Marcin Jurczuk"
 	EMAIL   string = "marcin@jurczuk.eu"
 )
@@ -53,7 +53,7 @@ func AddFwdRules(c *cli.Context) {
 	var extIP string
 
 	if len(c.Args()) < 1 {
-		fmt.Println("Missing argument - cm ip address.")
+		fmt.Fprintf(os.Stderr, "NG: Missing argument - cm ip address.")
 		return
 	} else {
 		ip = c.Args().First()
@@ -74,17 +74,18 @@ func AddFwdRules(c *cli.Context) {
 	//fmt.Println(s.Target, "device list:")
 	devices, err := godocsis.CmGetNetiaPlayerList(s)
 	if err != nil {
-		fmt.Println("GetConnectedDevices:", err)
+		fmt.Fprintf(os.Stderr, "NG:", err)
 		return
 	}
 	if len(devices) > 0 {
 		cm, err := godocsis.GetRouterIP(s)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "WARN: Unable to get externam router IP")
+			//perr()
 		}
 		extIP = cm.RouterIP
 	} else {
-		fmt.Fprintf(os.Stderr, "No NetiaPlayer devices found on cable modem\n")
+		fmt.Fprintf(os.Stdout, "NG: No NetiaPlayer devices found behind cable modem\n")
 		os.Exit(0)
 		extIP = "unknown"
 	}
@@ -106,7 +107,7 @@ func AddFwdRules(c *cli.Context) {
 			fmt.Println(err)
 			continue
 		}
-		fmt.Println("OK:", s.Target, "rules set. CM Router IP: ", extIP, "external port: 5001")
+		fmt.Println("OK:", s.Target, "rules set. CM Router IP:", extIP, "external port:", startPort)
 	}
 	//ruleCount, err := godocsis.CmGetFwdRuleCount(s, godocsis.TC7200ForwardingTree)
 	if err != nil {
