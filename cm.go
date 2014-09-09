@@ -64,7 +64,7 @@ func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	}
 	response, err := session.WalkAll(oid_cgConnectedDevices)
 	if err != nil {
-		return nil, fmt.Errorf("ERR GetConnetedDevices() WalkAll: %s", err)
+		return nil, fmt.Errorf("ERR GetConnetedDevices() WalkAll(): %s\n", err)
 
 	}
 	devices := make([]cgConnectedDevices, len(response)/4)

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION string = "1.0.1"
+	VERSION string = "1.0.2"
 	AUTHOR  string = "Marcin Jurczuk"
 	EMAIL   string = "marcin@jurczuk.eu"
 )
@@ -74,7 +74,7 @@ func AddFwdRules(c *cli.Context) {
 	//fmt.Println(s.Target, "device list:")
 	devices, err := godocsis.CmGetNetiaPlayerList(s)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "NG:", err)
+		fmt.Fprintf(os.Stderr, "NG: %s", err)
 		return
 	}
 	if len(devices) > 0 {
