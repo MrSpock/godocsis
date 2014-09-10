@@ -54,6 +54,7 @@ func AddFwdRules(c *cli.Context) {
 	var localIP string
 	var startPort int
 	startPort = c.Int("extport")
+	beginPort := startPort
 	fmt.Println("ExtPort:", startPort)
 	var extIP string
 
@@ -72,7 +73,7 @@ func AddFwdRules(c *cli.Context) {
 	forwardRule := godocsis.CgForwardRule{}
 	forwardRule.LocalIP = net.ParseIP(localIP)
 	//forwardRule.RuleName = "Test"
-	forwardRule.ExtPortStart = 5001
+	forwardRule.ExtPortStart = startPort
 	forwardRule.LocalPortStart = 22
 	forwardRule.ProtocolType = godocsis.Tcp
 	forwardRule.IPAddrType = godocsis.IPv4
@@ -112,7 +113,7 @@ func AddFwdRules(c *cli.Context) {
 			fmt.Println(err)
 			continue
 		}
-		fmt.Println("OK:", s.Target, "rules set. CM Router IP:", extIP, "external port:", startPort)
+		fmt.Println("OK:", s.Target, "rules set. CM Router IP:", extIP, "external port:", beginPort)
 	}
 	//ruleCount, err := godocsis.CmGetFwdRuleCount(s, godocsis.TC7200ForwardingTree)
 	if err != nil {
