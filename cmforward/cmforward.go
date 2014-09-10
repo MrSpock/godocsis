@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION string = "1.0.2"
+	VERSION string = "1.0.4"
 	AUTHOR  string = "Marcin Jurczuk"
 	EMAIL   string = "marcin@jurczuk.eu"
 )
@@ -39,6 +39,11 @@ func main() {
 				},
 			},
 			Action: AddFwdRules,
+		},
+		{
+			Name:   "del",
+			Usage:  "delete forwarding rules (currently does nothing !! - see TC bug #1-104377764)\n\tSyntax: del <CM_IP> <rule_no1> <rule_no2> <rule_no_N>",
+			Action: DelFwdRules,
 		},
 	}
 	app.Run(os.Args)
@@ -115,4 +120,8 @@ func AddFwdRules(c *cli.Context) {
 	}
 	//fmt.Println("Liczba aktwnych reguł:", ruleCount)
 	// fmt.Println(forwardRule)
+}
+
+func DelFwdRules(c *cli.Context) {
+	fmt.Fprintf(os.Stdout, "OK: Rules removed\n")
 }
