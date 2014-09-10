@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION string = "1.0.4"
+	VERSION string = "1.0.5"
 	AUTHOR  string = "Marcin Jurczuk"
 	EMAIL   string = "marcin@jurczuk.eu"
 )
