@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION string = "1.0.5"
+	VERSION string = "1.0.7"
 	AUTHOR  string = "Marcin Jurczuk"
 	EMAIL   string = "marcin@jurczuk.eu"
 )
@@ -54,7 +54,6 @@ func AddFwdRules(c *cli.Context) {
 	var localIP string
 	var startPort int
 	startPort = c.Int("extport")
-	beginPort := startPort
 	fmt.Println("ExtPort:", startPort)
 	var extIP string
 
@@ -100,7 +99,7 @@ func AddFwdRules(c *cli.Context) {
 		forwardRule.LocalIP = net.ParseIP(device.IPAddr.String())
 		//forwardRule.ExtPortStart = startPort
 		forwardRule.RuleName = strings.Replace(device.Name, "NetiaPlayer", "NP", -1)
-		startPort++
+		//startPort++
 		//fmt.Println(forwardRule)
 		err = forwardRule.Validate()
 
@@ -113,7 +112,8 @@ func AddFwdRules(c *cli.Context) {
 			fmt.Println(err)
 			continue
 		}
-		fmt.Println("OK:", s.Target, "rules set. CM Router IP:", extIP, "external port:", beginPort)
+		fmt.Println("OK:", s.Target, "rules set. CM Router IP:", extIP, "external port:", startPort)
+		startPort++
 	}
 	//ruleCount, err := godocsis.CmGetFwdRuleCount(s, godocsis.TC7200ForwardingTree)
 	if err != nil {

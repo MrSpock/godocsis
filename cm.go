@@ -115,9 +115,15 @@ func CmGetNetiaPlayerList(session gosnmp.GoSNMP) (npList []cgConnectedDevices, e
 		return
 	}
 	for _, device := range allDevices {
-		if strings.Contains(device.Name, "NetiaPlayer") {
+		switch true {
+		case strings.Contains(device.Name, "NetiaPlayer"):
+			npList = append(npList, device)
+		case strings.Contains(device.Name, "NETGEM"):
 			npList = append(npList, device)
 		}
+		// if strings.Contains(device.Name, "NetiaPlayer") {
+		// 	npList = append(npList, device)
+		// }
 	}
 	return
 }
