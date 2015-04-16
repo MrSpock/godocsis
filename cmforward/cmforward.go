@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/mrspock/godocsis"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/codegangsta/cli"
+	"github.com/mrspock/godocsis"
 	//"strings"
 )
 
 const (
+	// VERSION number
 	VERSION string = "1.0.7"
-	AUTHOR  string = "Marcin Jurczuk"
-	EMAIL   string = "marcin@jurczuk.eu"
+	// AUTHOR name
+	AUTHOR string = "Marcin Jurczuk"
+	// EMAIL contact
+	EMAIL string = "marcin@jurczuk.eu"
 )
 
 func main() {
@@ -49,6 +53,7 @@ func main() {
 	app.Run(os.Args)
 }
 
+// AddFwdRules is first cli "add" command handler
 func AddFwdRules(c *cli.Context) {
 	var ip string
 	var localIP string
@@ -60,10 +65,9 @@ func AddFwdRules(c *cli.Context) {
 	if len(c.Args()) < 1 {
 		fmt.Fprintf(os.Stderr, "NG: Missing argument - cm ip address.")
 		return
-	} else {
-		ip = c.Args().First()
-		//localIP = flag.Arg(1)
 	}
+	ip = c.Args().First()
+	//localIP = flag.Arg(1)
 
 	s := godocsis.Session
 	s.Target = ip
@@ -123,6 +127,7 @@ func AddFwdRules(c *cli.Context) {
 	// fmt.Println(forwardRule)
 }
 
+// DelFwdRules provides "del" command handler for cli handler
 func DelFwdRules(c *cli.Context) {
 	fmt.Fprintf(os.Stdout, "OK: Rules removed\n")
 }

@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mrspock/godocsis"
 	"net"
 	"os"
+
+	"github.com/mrspock/godocsis"
 )
 
 const (

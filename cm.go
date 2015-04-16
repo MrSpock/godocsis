@@ -2,13 +2,14 @@ package godocsis
 
 import (
 	"fmt"
-	"github.com/soniah/gosnmp"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/soniah/gosnmp"
 )
 
-// Reset cable modem by setting docsDevResetNow.0 to one
+// ResetCm function resets cable modem by setting docsDevResetNow.0 to one
 // This will make cable modem to reinitialize itself
 // The only param is cable modem IP address string
 func ResetCm(host string) error {
@@ -19,7 +20,7 @@ func ResetCm(host string) error {
 		return fmt.Errorf("Unable to connect: %s", err)
 	}
 	defer Session.Conn.Close()
-	pdu := []gosnmp.SnmpPDU{gosnmp.SnmpPDU{ResetOid, gosnmp.Integer, 1}}
+	pdu := []gosnmp.SnmpPDU{gosnmp.SnmpPDU{Name: ResetOid, Type: gosnmp.Integer, Value: 1}}
 	//fmt.Println(pdu)
 	_, err = Session.Set(pdu)
 	if err != nil {
@@ -28,8 +29,8 @@ func ResetCm(host string) error {
 	return nil
 }
 
-// For cable modems with Router built-in this will return e-Router CPE
-// external IP address used for NAT all user traffic
+// GetRouterIP return built-in e-Router external (WAN) ip address
+// used for NAT all user traffic
 func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 	err = session.Connect()
 	defer session.Conn.Close()
@@ -52,10 +53,10 @@ func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 	return cm, nil
 }
 
-// For TC7200 cable modems this will return list of devicess connected to its LAN
+// GetConnetedDevices show devicess connected to CM LAN
 // side. Both WiFi and Wired devices are listed
 func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
-	var mac_byte []byte
+	var macByte []byte
 	err := session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
@@ -76,15 +77,15 @@ func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 		case "2":
 
 			// upstream soniah/gosnmp changed OctetString Value from string to uint8
-			mac_byte = pdu.Value.([]uint8)
+			macByte = pdu.Value.([]uint8)
 			// either my o library fuckup. Some mac are inproperly decoded to string
 			// I have to look into Decoding snmp library
 			// this is workaround
-			switch len(mac_byte) {
+			switch len(macByte) {
 			case 6:
-				//devices[id-1].MacAddr = fmt.Sprintf("%X:%X:%X:%X:%X:%X", mac_byte[0], mac_byte[1], mac_byte[2], mac_byte[2], mac_byte[4], mac_byte[5])
-				devices[id-1].MacAddr = []byte(mac_byte)
-				//fmt.Println(mac_byte, pdu.Value)
+				//devices[id-1].MacAddr = fmt.Sprintf("%X:%X:%X:%X:%X:%X", macByte[0], macByte[1], macByte[2], macByte[2], macByte[4], macByte[5])
+				devices[id-1].MacAddr = []byte(macByte)
+				//fmt.Println(macByte, pdu.Value)
 			case 17:
 				mac, err := net.ParseMAC(strings.Replace(pdu.Value.(string), " ", ":", -1))
 				if err != nil {
@@ -96,8 +97,8 @@ func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 
 			devices[id-1].Name = string(pdu.Value.([]uint8))
 		case "4":
-			devip_byte := pdu.Value.([]byte)
-			devices[id-1].IPAddr = devip_byte
+			devipByte := pdu.Value.([]byte)
+			devices[id-1].IPAddr = devipByte
 
 		}
 	}
@@ -109,6 +110,9 @@ func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 	return devices, nil
 }
 
+// CmGetNetiaPlayerList is Netia specific function that return local side (LAN)
+// IP address for every connected and detected NetiaPLayer STB.
+// Each NetiaPlayer have it's DHCP client-identifier set to NetiaPlayer or NETGEM
 func CmGetNetiaPlayerList(session gosnmp.GoSNMP) (npList []cgConnectedDevices, err error) {
 	allDevices, err := GetConnetedDevices(session)
 	if err != nil {
@@ -128,7 +132,7 @@ func CmGetNetiaPlayerList(session gosnmp.GoSNMP) (npList []cgConnectedDevices, e
 	return
 }
 
-//request cable modem upgrade
+//CmUpgrade request cable modem upgrade
 //params are gosnmp.GoSNMP object, server IP address (string) and path relative to tftp root (string)
 func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err error) {
 	if len(session.Community) == 0 {
@@ -144,7 +148,7 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 	// gosnmp supports only one set at request
 	serverIP := net.ParseIP(server)
 	pdu := make([]gosnmp.SnmpPDU, 1)
-	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwServer, gosnmp.IPAddress, []byte(serverIP)[12:]}
+	pdu[0] = gosnmp.SnmpPDU{Name: oid_docsDevSwServer, Type: gosnmp.IPAddress, Value: []byte(serverIP)[12:]}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
@@ -161,24 +165,12 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 	if err != nil {
 		return
 	}
-	//fmt.Println(pdu)
-	//_, err = session.Set(pdu)
+
 	return
 }
 
-// type CgForwardingOid struct {
-// 	ExtPortStart        string
-// 	ExtPortEnd          string
-// 	ProtocolType        string
-// 	IpAddrType          string
-// 	LocalIP             string
-// 	ForwardingEnabled   string
-// 	ForwardingRowStatus string
-// 	LocalPortStart      string
-// 	LocalPortEnd        string
-// 	RuleName            string
-// }
-//
+// CmGetFwdRuleCount return number of alredy present forwarding rules providing
+// SNMP index where to pun new one without overrwriting exisiting one
 func CmGetFwdRuleCount(session gosnmp.GoSNMP, oids *CgForwardingOid) (count int, err error) {
 	count = 0
 	if len(session.Community) == 0 {
@@ -204,6 +196,7 @@ func CmGetFwdRuleCount(session gosnmp.GoSNMP, oids *CgForwardingOid) (count int,
 	return 1, err
 }
 
+// CmSetForwardRule sets new firewall forwarding rule for TC7200 CM
 func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwardingOid) (err error) {
 	err = rule.Validate()
 	if err != nil {
