@@ -4,42 +4,46 @@ Very rudimental implementation of basic CM queries for larger project.
 This is very fresh topic. Look here in future :)
 Code is not using concurrency at the moment.
 
-example:
+Example that will fetch DS/US RF levels from CM:
 ```
 package main
 
 import (
-    "flag"
-    "fmt"
-    "github.com/mrspock/godocsis"
+	"flag"
+	"fmt"
+	"os"
+
+	"github.com/mrspock/godocsis"
 )
 
 func main() {
-    var ip string
-    flag.Parse()
-    if len(flag.Args()) < 1 {
-        // default IP - my default test modem  (3dc1)
-        ip = "10.80.0.164"
-    }
-    ip = flag.Args()[0]
-    rs, err := rf.RFLevel(ip)
-    if err != nil {
-        fmt.Println("Error")
-        panic(err)
-    }
+	//var ip string
+	flag.Parse()
+	if len(flag.Args()) < 1 {
+		fmt.Println("Usage: cmparams <ip> <ip>")
+		return
+	}
+	s := godocsis.Session
+	for _, ip := range flag.Args() {
+		s.Target = ip
+		rs, err := godocsis.RFLevel(s)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Problem: %v", err)
+			//panic(err)
+		} else {
+			fmt.Printf("%s:", ip)
+			fmt.Printf("%.01f:", float32(rs.RF.USLevel[0])/10)
+			separator := ","
+			for no, ds := range rs.RF.DSLevel {
+				if no == rs.RF.DsBondingSize()-1 {
+					separator = ""
+				}
+				fmt.Printf("%.01f%v", float32(ds)/10, separator)
+			}
+			fmt.Println("")
+		}
+	}
 
-    fmt.Println("DS", rs.DSLevel, "\nDS Bonding size:", rs.DsBondingSize())
-    fmt.Println("US", rs.USLevel)
-    // new method (will be aplied to RFLevel())
-    s := godocsis.Session
-    s.Target = ip
-    cm, err := godocsis.GetRouterIP(s)
-    if err != nil {
-        fmt.Println("Error:", err)
-        return
-    }
-    fmt.Println(cm.RouterIP)
 }
-
 ```
 
