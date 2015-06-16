@@ -13,6 +13,7 @@ import (
 func RFLevel(session gosnmp.GoSNMP) (CM, error) {
 	//Session.Target = ip
 	var cm CM
+	cm.IPaddr = session.Target
 	//var rfdata RFParams
 	DSLevel, err := snmpwalk(session, DsOid)
 	if err != nil {
