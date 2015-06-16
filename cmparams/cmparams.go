@@ -8,11 +8,38 @@ import (
 	"github.com/mrspock/godocsis"
 )
 
+func printVerbose(cmd godocsis.CM) {
+	fmt.Printf("%s ", cmd.IPaddr)
+	fmt.Printf("US(dBmV):%.01f ", float32(cmd.RF.USLevel[0])/10)
+	separator := ","
+	fmt.Printf("DS(dBmV):")
+	for no, ds := range cmd.RF.DSLevel {
+		if no == cmd.RF.DsBondingSize()-1 {
+			separator = ""
+		}
+		fmt.Printf("%.01f%v", float32(ds)/10, separator)
+	}
+	fmt.Println("")
+
+}
+func printCSV(cmd godocsis.CM) {
+	fmt.Printf("%s:", cmd.IPaddr)
+	fmt.Printf("%.01f:", float32(cmd.RF.USLevel[0])/10)
+	separator := ","
+	for no, ds := range cmd.RF.DSLevel {
+		if no == cmd.RF.DsBondingSize()-1 {
+			separator = ""
+		}
+		fmt.Printf("%.01f%v", float32(ds)/10, separator)
+	}
+	fmt.Println("")
+
+}
 func main() {
-	//var ip string
+	csvmode := flag.Bool("csv", false, "CSV mode for easy import to spreadsheet")
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		fmt.Println("Usage: cmparams <ip> <ip>")
+		fmt.Println("Usage: cmparams [--csv] <ip> <ip>")
 		return
 	}
 	s := godocsis.Session
@@ -20,19 +47,26 @@ func main() {
 		s.Target = ip
 		rs, err := godocsis.RFLevel(s)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Problem: %v", err)
+			//fmt.Fprintf(os.Stderr, "Problem: %v", err)
+			fmt.Fprintf(os.Stderr, "%s:OFFLINE\n", ip)
 			//panic(err)
 		} else {
-			fmt.Printf("%s:", ip)
-			fmt.Printf("%.01f:", float32(rs.RF.USLevel[0])/10)
-			separator := ","
-			for no, ds := range rs.RF.DSLevel {
-				if no == rs.RF.DsBondingSize()-1 {
-					separator = ""
-				}
-				fmt.Printf("%.01f%v", float32(ds)/10, separator)
+			if *csvmode {
+				printCSV(rs)
+			} else {
+				printVerbose(rs)
 			}
-			fmt.Println("")
+			//			fmt.Printf("%s:", ip)
+			//			fmt.Printf("%.01f:", float32(rs.RF.USLevel[0])/10)
+			//			separator := ","
+			//			for no, ds := range rs.RF.DSLevel {
+			//				if no == rs.RF.DsBondingSize()-1 {
+			//					separator = ""
+			//				}
+			//				fmt.Printf("%.01f%v", float32(ds)/10, separator)
+			//			}
+			//			fmt.Println("")
+			//
 		}
 	}
 
