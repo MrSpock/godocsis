@@ -1,4 +1,4 @@
-// godocsis is package providing misceleaneous functions and few binaries
+// Package godocsis is package providing misceleaneous functions and few binaries
 // that are usefull for users/admins DOCSIS based networks
 // Currently all functions are cable modem related.
 // TODO is to add support for concurency and some CMTS support
@@ -6,43 +6,53 @@ package godocsis
 
 import (
 	"fmt"
-	"github.com/soniah/gosnmp"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/soniah/gosnmp"
 )
 
+// Protocol type used insted uint
 type Protocol uint
-type IPAddrType_t int
 
-func (r IPAddrType_t) String() string {
+// IPAddrType SNMP ipaddr type
+type IPAddrType int
+
+func (r IPAddrType) String() string {
 	if r == 1 {
 		return "ipv4(1)"
-	} else {
-		return "unknown()"
 	}
+	return "unknown()"
 }
 
 func (p Protocol) String() string {
 	return strconv.Itoa(int(p))
 }
 
+// Value return protocol type casted to int for external use
 func (p Protocol) Value() int {
 	return int(p)
 }
 
 const (
-	ResetOid               string = "1.3.6.1.2.1.69.1.1.3.0"
-	DsOid                  string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
-	UsOid                  string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
-	IpAdEntIfIndex         string = "1.3.6.1.2.1.4.20.1.2"
+	// ResetOid - generic DOCSIS cable modem reset oid
+	ResetOid string = "1.3.6.1.2.1.69.1.1.3.0"
+	// DsOid contans table of active downstreams
+	DsOid string = "1.3.6.1.2.1.10.127.1.1.1.1.6"
+	// UsOid contains table of used upstream channels
+	UsOid string = "1.3.6.1.2.1.10.127.1.2.2.1.3"
+	// IPAdEntIfIndex will provide tree with list of IP addressess
+	IPAdEntIfIndex string = "1.3.6.1.2.1.4.20.1.2"
+	// oid_cgConnectedDevices is Technicolor TC7200 specific mib
+	// with list of connected devices
 	oid_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13"
 )
 
 const (
-	oid_docsDevSwServer      string = ".1.3.6.1.2.1.69.1.3.1.0"
+	DocsDevSwServerOid       string = ".1.3.6.1.2.1.69.1.3.1.0"
 	oid_docsDevSwFilename    string = ".1.3.6.1.2.1.69.1.3.2.0"
 	oid_docsDevSwAdminStatus string = ".1.3.6.1.2.1.69.1.3.3.0"
 	oid_docsDevSwCurrentVers string = ".1.3.6.1.2.1.69.1.3.5.0"
@@ -79,12 +89,15 @@ var TC7200ForwardingTree = &CgForwardingOid{
 }
 
 const (
+	// Both SNMP code
 	Both Protocol = 1
-	Tcp  Protocol = 2
-	Udp  Protocol = 3
+	// Tcp SNMP code
+	Tcp Protocol = 2
+	// Udp SNMP code
+	Udp Protocol = 3
 )
 
-const IPv4 IPAddrType_t = 1
+const IPv4 IPAddrType = 1
 
 var Session = gosnmp.GoSNMP{
 	Port:      161,
@@ -132,7 +145,7 @@ type CgForwardRule struct {
 	ExtPortEnd     int
 	RuleName       string
 	ProtocolType   Protocol
-	IPAddrType     IPAddrType_t
+	IPAddrType     IPAddrType
 }
 
 func (p *CgForwardRule) Validate() (err error) {
@@ -225,13 +238,14 @@ func HexIPtoString(octet_a []byte) (string, error) {
 	}
 }
 
-// wrapper for commonly used code for handling errors
+// PanicIf wrapper for commonly used code for handling errors
 func PanicIf(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
+// AddOidSuffix will add index suffix and return full OID
 func AddOidSuffix(oid string, suffix int) (finalOid string) {
 	data := []string{oid, strconv.Itoa(suffix)}
 	finalOid = strings.Join(data, ".")
