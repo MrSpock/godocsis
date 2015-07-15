@@ -12,9 +12,9 @@ import (
 // ResetCm function resets cable modem by setting docsDevResetNow.0 to one
 // This will make cable modem to reinitialize itself
 // The only param is cable modem IP address string
-func ResetCm(host string) error {
+func ResetCm(host string,community string) error {
 	Session.Target = host
-	Session.Community = "private"
+	Session.Community = community
 	err := Session.Connect()
 	if err != nil {
 		return fmt.Errorf("Unable to connect: %s", err)
@@ -38,7 +38,7 @@ func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 		//log.Fatalf("Connect() err: %v", err)
 		return cm, fmt.Errorf("Connection error: %s", err)
 	}
-	response, err := session.WalkAll(IpAdEntIfIndex) //
+	response, err := session.WalkAll(IPAdEntIfIndex) //
 	if err != nil {
 		//log.Fatalf("Get() err: %v", err)
 		return cm, fmt.Errorf("Walk error: %s", err)
@@ -47,7 +47,7 @@ func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 	for _, pdu := range response {
 		// For cablemodems I have ifIndex.1 contains embedded eRouter IP
 		if pdu.Value.(int) == 1 {
-			cm.RouterIP = strings.Replace(pdu.Name, "."+IpAdEntIfIndex+".", "", 1)
+			cm.RouterIP = strings.Replace(pdu.Name, "."+IPAdEntIfIndex+".", "", 1)
 		}
 	}
 	return cm, nil
@@ -148,7 +148,7 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 	// gosnmp supports only one set at request
 	serverIP := net.ParseIP(server)
 	pdu := make([]gosnmp.SnmpPDU, 1)
-	pdu[0] = gosnmp.SnmpPDU{Name: oid_docsDevSwServer, Type: gosnmp.IPAddress, Value: []byte(serverIP)[12:]}
+	pdu[0] = gosnmp.SnmpPDU{Name: DocsDevSwServerOid, Type: gosnmp.IPAddress, Value: []byte(serverIP)[12:]}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
