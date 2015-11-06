@@ -19,7 +19,7 @@ var Usage = func() {
 }
 
 func main() {
-	community := flag.String("community", "public", "RW community to use when sending restart request")
+	community := flag.String("community", "private", "RW community to use when sending restart request")
 	flag.Usage = Usage
 	flag.Parse()
 	if len(flag.Args()) == 0 {
