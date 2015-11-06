@@ -9,11 +9,18 @@ import (
 )
 
 const (
-	VERSION string = "1.0.3"
+	VERSION string = "1.0.4"
 )
+
+var Usage = func() {
+	Help(os.Args[0])
+	flag.PrintDefaults()
+}
 
 func main() {
 	//var ip string
+	community := flag.String("community", "private", "RW community to use when sending restart request")
+	flag.Usage = Usage
 	flag.Parse()
 	if len(flag.Args()) < 2 {
 		Help(os.Args[0])
@@ -32,7 +39,7 @@ func main() {
 		for _, address := range ip {
 			//fmt.Println(address)
 			snmp := godocsis.Session
-			snmp.Community = "private"
+			snmp.Community = *community
 			snmp.Target = address
 			err := godocsis.CmUpgrade(&snmp, server, path)
 			if err != nil {
