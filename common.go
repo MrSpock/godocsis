@@ -251,3 +251,18 @@ func AddOidSuffix(oid string, suffix int) (finalOid string) {
 	finalOid = strings.Join(data, ".")
 	return
 }
+
+//Oid2MAC Replace SNMP integer encoded MAC ("4.222.110.11.22.224")
+// MAC address
+func Oid2MAC(oid string) (string, error) {
+	var rs []string
+	for _, v := range strings.Split(oid, ".") {
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return "", err
+		}
+		rs = append(rs, fmt.Sprintf("%02X", i))
+
+	}
+	return strings.Join(rs, ":"), nil
+}
