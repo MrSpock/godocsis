@@ -8,6 +8,11 @@ import (
 	"github.com/mrspock/godocsis"
 )
 
+var (
+	community = flag.String("community", "public", "RW community to use when sending restart request")
+	csvmode   = flag.Bool("csv", false, "CSV mode for easy import to spreadsheet")
+)
+
 func printVerbose(cmd godocsis.CM) {
 	fmt.Printf("%s ", cmd.IPaddr)
 	fmt.Printf("US(dBmV):%.01f ", float32(cmd.RF.USLevel[0])/10)
@@ -36,13 +41,14 @@ func printCSV(cmd godocsis.CM) {
 
 }
 func main() {
-	csvmode := flag.Bool("csv", false, "CSV mode for easy import to spreadsheet")
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		fmt.Println("Usage: cmparams [--csv] <ip> <ip>")
+		fmt.Println("Usage: cmparams [--csv] [--community <community>] <ip> <ip>")
 		return
 	}
+
 	s := godocsis.Session
+	s.Community = *community
 	for _, ip := range flag.Args() {
 		s.Target = ip
 		rs, err := godocsis.RFLevel(s)
