@@ -214,7 +214,14 @@ func snmpwalk(session gosnmp.GoSNMP, oid string) ([]string, error) {
 	}
 	var result = make([]string, len(response))
 	for i, pdu := range response {
-		result[i] = strconv.Itoa(pdu.Value.(int))
+		switch pdu.Type {
+		case gosnmp.OctetString:
+			result[i] = string(pdu.Value.([]uint8))
+		case gosnmp.Integer:
+			result[i] = strconv.Itoa(pdu.Value.(int))
+			// case gosnmp.OctetString:
+			// 	result[i] = string(pdu.Value.([]byte))
+		}
 	}
 	return result, nil
 }

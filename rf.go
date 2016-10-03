@@ -3,6 +3,7 @@ package godocsis
 import (
 	"errors"
 	"fmt"
+
 	"github.com/soniah/gosnmp"
 	//"log"
 	"strconv"
@@ -29,6 +30,22 @@ func RFLevel(session gosnmp.GoSNMP) (CM, error) {
 	cm.RF.USLevel = string2int_a(USLevel)
 	//CM.RF = rfparams
 	return cm, nil
+}
+
+func CmVersion(session gosnmp.GoSNMP) (version string, err error) {
+	rs, err := snmpwalk(session, oid_cmVersion)
+
+	if err != nil {
+		fmt.Println("Error in CmVersion:", err)
+		return version, errors.New(err.Error())
+	}
+	if len(rs) == 1 {
+		version = rs[0]
+
+	} else {
+		return version, errors.New("Wrong number of returned varbinds - expected one")
+	}
+	return version, nil
 }
 
 // convert string to slice of integer values
