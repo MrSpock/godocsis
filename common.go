@@ -57,6 +57,7 @@ const (
 	oid_docsDevSwAdminStatus string = ".1.3.6.1.2.1.69.1.3.3.0"
 	oid_docsDevSwCurrentVers string = ".1.3.6.1.2.1.69.1.3.5.0"
 	oid_cmVersion            string = ".1.3.6.1.2.1.1.1.0"
+	oid_cmLogs               string = ".1.3.6.1.2.1.69.1.5.8.1.7"
 )
 
 // list of oids for forwarding table in TC7200

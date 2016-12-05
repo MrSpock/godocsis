@@ -57,6 +57,34 @@ func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 	return cm, nil
 }
 
+func GetLogs(session gosnmp.GoSNMP) (logs []string, err error) {
+	err = session.Connect()
+	defer session.Conn.Close()
+	if err != nil {
+		//log.Fatalf("Connect() err: %v", err)
+		return logs, fmt.Errorf("Connection error: %s", err)
+	}
+	response, err := session.WalkAll(oid_cmLogs) //
+	if err != nil {
+		//log.Fatalf("Get() err: %v", err)
+		return logs, fmt.Errorf("Walk error: %s", err)
+	}
+
+	for _, pdu := range response {
+		//fmt.Printf("PDU TYPE: %v\n", pdu.Value.(string))
+		switch t := pdu.Value.(type) {
+		case string:
+			logs = append(logs, t)
+		case []uint8:
+			//fmt.Println("UINT8")
+			logs = append(logs, string(t))
+			// case default:
+			// 	fmt.Println("PDU TYPE: %v", pdu.Value)
+		}
+	}
+	return logs, nil
+}
+
 // GetConnetedDevices show devicess connected to CM LAN
 // side. Both WiFi and Wired devices are listed
 func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
