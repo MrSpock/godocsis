@@ -23,7 +23,7 @@ func main() {
 	var out_a []string
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		fmt.Println("Usage: cmparams [--json] [--community <community>] <ip> <ip>")
+		fmt.Println("Usage: cmversion [-json] [-community <community>] <ip> <ip>")
 		return
 	}
 
