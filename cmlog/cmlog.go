@@ -4,46 +4,29 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mrspock/godocsis"
 )
 
 var (
 	community = flag.String("community", "public", "RW community to use when sending restart request")
-	csvmode   = flag.Bool("csv", false, "CSV mode for easy import to spreadsheet")
+	csvmode   = flag.Bool("json", false, "JSON mode for easy import")
 )
 
-func printVerbose(cmd godocsis.CM) {
-	fmt.Printf("%s ", cmd.IPaddr)
-	fmt.Printf("US(dBmV):%.01f ", float32(cmd.RF.USLevel[0])/10)
-	separator := ","
-	fmt.Printf("DS(dBmV):")
-	for no, ds := range cmd.RF.DSLevel {
-		if no == cmd.RF.DsBondingSize()-1 {
-			separator = ""
-		}
-		fmt.Printf("%.01f%v", float32(ds)/10, separator)
+func printJSON(data []string) {
+	var rs []string
+	for i, v := range data {
+		rs = append(rs, fmt.Sprintf("\n{\n\t\"id\": \"%d\",\n\t\"value\": \"%s\"\n}", i, v))
 	}
-	fmt.Println("")
-
-}
-func printCSV(cmd godocsis.CM) {
-	fmt.Printf("%s:", cmd.IPaddr)
-	fmt.Printf("%.01f:", float32(cmd.RF.USLevel[0])/10)
-	separator := ","
-	for no, ds := range cmd.RF.DSLevel {
-		if no == cmd.RF.DsBondingSize()-1 {
-			separator = ""
-		}
-		fmt.Printf("%.01f%v", float32(ds)/10, separator)
-	}
-	fmt.Println("")
-
+	fmt.Println("[")
+	fmt.Println(strings.Join(rs, ","))
+	fmt.Println("]")
 }
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 1 {
-		fmt.Println("Usage: cmparams [--csv] [--community <community>] <ip> <ip>")
+		fmt.Println("Usage: cmlog [--json] [--community <community>] ip")
 		return
 	}
 
@@ -51,28 +34,23 @@ func main() {
 	s.Community = *community
 	for _, ip := range flag.Args() {
 		s.Target = ip
-		rs, err := godocsis.RFLevel(s)
+		rs, err := godocsis.GetLogs(s)
 		if err != nil {
 			//fmt.Fprintf(os.Stderr, "Problem: %v", err)
 			fmt.Fprintf(os.Stderr, "%s:OFFLINE\n", ip)
 			//panic(err)
 		} else {
 			if *csvmode {
-				printCSV(rs)
+				printJSON(rs)
+
 			} else {
-				printVerbose(rs)
+				//printVerbose(rs)
+				for i, l := range rs {
+					fmt.Printf("%d: %s\n", i, l)
+
+				}
 			}
-			//			fmt.Printf("%s:", ip)
-			//			fmt.Printf("%.01f:", float32(rs.RF.USLevel[0])/10)
-			//			separator := ","
-			//			for no, ds := range rs.RF.DSLevel {
-			//				if no == rs.RF.DsBondingSize()-1 {
-			//					separator = ""
-			//				}
-			//				fmt.Printf("%.01f%v", float32(ds)/10, separator)
-			//			}
-			//			fmt.Println("")
-			//
+
 		}
 	}
 
