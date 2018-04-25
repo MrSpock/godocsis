@@ -11,6 +11,19 @@ import (
 	"github.com/soniah/gosnmp"
 )
 
+// cable modem structure
+type CmtsCM struct {
+	CmtsIndex int
+	IPaddr    string
+	RouterIP  string
+	RF        RFParams
+	MacAddr   string
+	State     ModemStatus
+	//	Devices   []cgConnectedDevices
+}
+
+type CableModems map[int]*CmtsCM
+
 var logger = log.New(os.Stderr, "cm.go", 0)
 
 // ResetCm function resets cable modem by setting docsDevResetNow.0 to one
@@ -35,7 +48,7 @@ func ResetCm(host string, community string) error {
 
 // GetRouterIP return built-in e-Router external (WAN) ip address
 // used for NAT all user traffic
-func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
+func GetRouterIP(session gosnmp.GoSNMP) (cm CmtsCM, err error) {
 	err = session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
@@ -95,7 +108,7 @@ func GetConnetedDevices(session gosnmp.GoSNMP) ([]cgConnectedDevices, error) {
 		//log.Fatalf("Connect() err: %v", err)
 		return nil, fmt.Errorf("ERR GetConnetedDevices() Connection error: %s", err)
 	}
-	response, err := session.WalkAll(oid_cgConnectedDevices)
+	response, err := session.WalkAll(oid_tc7200_cgConnectedDevices)
 	if err != nil {
 		return nil, fmt.Errorf("ERR GetConnetedDevices() WalkAll(): %s\n", err)
 

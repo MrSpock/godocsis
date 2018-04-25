@@ -1,6 +1,5 @@
 package godocsis
 
-
 // list of oids for forwarding table in TC7200
 const (
 	oid_tc7200_cgUiAdvancedForwardingPortStartValue         string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.2"
@@ -16,7 +15,6 @@ const (
 	oid_tc7200_cgUiAdvancedForwardingDescription            string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.12"
 	oid_tc7200_cgUiAdvancedForwardingRemove                 string = ".1.3.6.1.4.1.2863.205.10.1.33.2.5.1.13"
 )
-
 
 // cm upgrade
 const (
@@ -42,14 +40,35 @@ const (
 	oid_tc7200_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13"
 )
 
-
-
 //CMTS
 const (
 	// deprecated
-	oid_docsIfCmtsCmStatusIpAddress = ".1.3.6.1.2.1.10.127.1.3.3.1.3"
-	oid_docsIfCmtsCmStatus = ".1.3.6.1.2.1.10.127.1.3.3.1.9"
-	oid_docsIfCmtsCmInetAddress = ".1.3.6.1.2.1.10.127.1.3.3.1.21"
-	oid_docsIfCmtsCmMacAddress = ".1.3.6.1.2.1.10.127.1.3.3.1.2"
-	oid_docsIfCmtsCmStatusSignalNoise = ".1.3.6.1.2.1.10.127.1.3.3.1.13"
+	oid_docsIfCmtsCmStatusTable           = ".1.3.6.1.2.1.10.127.1.3.3.1"
+	oid_docsIfCmtsCmStatusMacAddress      = ".1.3.6.1.2.1.10.127.1.3.3.1.2"
+	oid_docsIfCmtsCmStatusIpAddress       = ".1.3.6.1.2.1.10.127.1.3.3.1.3"
+	oid_docsIfCmtsCmStatusRxPower         = " .1.3.6.1.2.1.10.127.1.3.3.1.6"
+	oid_docsIfCmtsCmStatus                = ".1.3.6.1.2.1.10.127.1.3.3.1.9"
+	oid_docsIfCmtsCmInetAddressType       = ".1.3.6.1.2.1.10.127.1.3.3.1.20"
+	oid_docsIfCmtsCmInetAddress           = ".1.3.6.1.2.1.10.127.1.3.3.1.21"
+	oid_docsIfCmtsCmMacAddress            = ".1.3.6.1.2.1.10.127.1.3.3.1.2"
+	oid_docsIfCmtsCmStatusSignalNoise     = ".1.3.6.1.2.1.10.127.1.3.3.1.13"
+	oid_docsIfCmtsCmStatusValueLastUpdate = ".1.3.6.1.2.1.10.127.1.3.3.1.22"
+)
+
+// OID table definitions
+const (
+	CM_STATUS_MAC_ADDRESS = 2
+	// deprecated
+	CM_STATUS_IP_ADDRES         = 3
+	CM_STATUS_RX_POWER          = 6
+	CM_STATUS_US_SNR            = 13
+	CM_STATUS_INET_ADDRESS_TYPE = 20
+	CM_STATUS_INET_ADDRESS      = 21
+	CM_STATUS                   = 9
+	CM_STATUS_UPDATE_TS         = 22
+)
+
+const (
+	IP_ADDR_TYPE_UNKNOWN = 0
+	IP_ADDR_TYPE_v4      = 1
 )
