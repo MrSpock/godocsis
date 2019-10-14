@@ -38,6 +38,8 @@ const (
 	// oid_cgConnectedDevices is Technicolor TC7200 specific mib
 	// with list of connected devices
 	oid_tc7200_cgConnectedDevices string = "1.3.6.1.4.1.2863.205.10.1.13"
+	// cable modem upgrade method (1 - tftp, 2 - http)
+	oid_docsDevSwServerTransportProtocol = ".1.3.6.1.2.1.69.1.3.8.0"
 )
 
 //CMTS

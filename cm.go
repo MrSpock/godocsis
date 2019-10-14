@@ -11,6 +11,8 @@ import (
 	"github.com/soniah/gosnmp"
 )
 
+type CmProtocol int
+
 // cable modem structure
 type CmtsCM struct {
 	CmtsIndex int
@@ -179,7 +181,7 @@ func CmGetNetiaPlayerList(session gosnmp.GoSNMP) (npList []cgConnectedDevices, e
 
 //CmUpgrade request cable modem upgrade
 //params are gosnmp.GoSNMP object, server IP address (string) and path relative to tftp root (string)
-func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err error) {
+func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string, protocol CmProtocol) (err error) {
 	if len(session.Community) == 0 {
 		// set default community if none is set
 		session.Community = "private"
@@ -198,12 +200,18 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string) (err erro
 	if err != nil {
 		return
 	}
-
 	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwFilename, gosnmp.OctetString, filename, logger}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
+	upgradeProtocol := int(protocol)
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwServerTransportProtocol, gosnmp.Integer, upgradeProtocol, logger}
+	_, err = session.Set(pdu)
+	if err != nil {
+		return
+	}
+
 	// docsDevSwAdminStatus.0 = 1 -> start upgrade (upgradeFromMgt(1))
 	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwAdminStatus, gosnmp.Integer, 1, logger}
 	_, err = session.Set(pdu)
