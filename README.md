@@ -1,6 +1,6 @@
 go-docsis
 =========
-Very rudimental implementation of basic CM queries for larger project.
+Implementation of basic CM oprations. Part of larger closed source project.
 This is very fresh topic. Look here in future :)
 Code is not using concurrency at the moment.
 
