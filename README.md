@@ -1,6 +1,6 @@
 go-docsis
 =========
-Implementation of basic CM oprations. Part of larger closed source project.
+Implementation of basic CM operations. Part of larger closed source project.
 Code is not using concurrency at the moment.
 
 Example that will fetch DS/US RF levels from CM:
