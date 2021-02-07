@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 // GetModemList - provides list of modems seen on CMTS

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 	//"log"
 	"strconv"
 )

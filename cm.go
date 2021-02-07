@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 type CmProtocol int
@@ -200,20 +200,20 @@ func CmUpgrade(session *gosnmp.GoSNMP, server string, filename string, protocol 
 	if err != nil {
 		return
 	}
-	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwFilename, gosnmp.OctetString, filename, logger}
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwFilename, gosnmp.OctetString, filename}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
 	upgradeProtocol := int(protocol)
-	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwServerTransportProtocol, gosnmp.Integer, upgradeProtocol, logger}
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwServerTransportProtocol, gosnmp.Integer, upgradeProtocol}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
 	}
 
 	// docsDevSwAdminStatus.0 = 1 -> start upgrade (upgradeFromMgt(1))
-	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwAdminStatus, gosnmp.Integer, 1, logger}
+	pdu[0] = gosnmp.SnmpPDU{oid_docsDevSwAdminStatus, gosnmp.Integer, 1}
 	_, err = session.Set(pdu)
 	if err != nil {
 		return
@@ -274,7 +274,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	// session.Connect()
 	// defer session.Conn.Close()
 	//Ext Port Start
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortStart, ruleNo), gosnmp.Integer, rule.ExtPortStart, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortStart, ruleNo), gosnmp.Integer, rule.ExtPortStart}
 	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
@@ -283,7 +283,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	//fmt.Printf("ExtPortEnd: %d, ", rule.ExtPortEnd)
 	fmt.Printf(". ")
 	// Ext Port End
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortEnd, ruleNo), gosnmp.Integer, rule.ExtPortEnd, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtPortEnd, ruleNo), gosnmp.Integer, rule.ExtPortEnd}
 	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
@@ -292,7 +292,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	//fmt.Printf("ProtocolType: %s, ", rule.ProtocolType)
 	fmt.Printf(". ")
 	// Ext Port End
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ProtocolType, ruleNo), gosnmp.Integer, int(rule.ProtocolType), logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ProtocolType, ruleNo), gosnmp.Integer, int(rule.ProtocolType)}
 	//err = snmpset(*session, pdu)
 	_, err = session.Set(pdu)
 	if err != nil {
@@ -300,7 +300,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	}
 	//fmt.Printf("IpAddrType: %s, ", rule.IPAddrType.String())
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.IpAddrType, ruleNo), gosnmp.Integer, int(rule.IPAddrType), logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.IpAddrType, ruleNo), gosnmp.Integer, int(rule.IPAddrType)}
 	//_, err = session.Set(pdu)
 	err = snmpset(session, pdu)
 	if err != nil {
@@ -308,7 +308,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	}
 	//fmt.Printf("LocalIP: %s, ", rule.LocalIP)
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalIP, ruleNo), gosnmp.OctetString, []byte(rule.LocalIP)[12:], logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalIP, ruleNo), gosnmp.OctetString, []byte(rule.LocalIP)[12:]}
 	//_, err = session.Set(pdu)
 	err = snmpset(session, pdu)
 	if err != nil {
@@ -316,13 +316,13 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	}
 	//fmt.Printf("EnableRule: (1)")
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingEnabled, ruleNo), gosnmp.Integer, 1, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingEnabled, ruleNo), gosnmp.Integer, 1}
 	err = snmpset(session, pdu)
 	if err != nil {
 		return
 	}
 
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingRowStatus, ruleNo), gosnmp.Integer, 3, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ForwardingRowStatus, ruleNo), gosnmp.Integer, 3}
 	err = snmpset(session, pdu)
 	if err != nil {
 		return
@@ -330,7 +330,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	//Local Port Start
 	//fmt.Printf("LocalPortStart: %d, ", rule.LocalPortStart)
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortStart, ruleNo), gosnmp.Integer, rule.LocalPortStart, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortStart, ruleNo), gosnmp.Integer, rule.LocalPortStart}
 	err = snmpset(session, pdu)
 	if err != nil {
 		return
@@ -338,7 +338,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	// Local Port End
 	//fmt.Printf("LocalPortEnd: %d, ", rule.LocalPortEnd)
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortEnd, ruleNo), gosnmp.Integer, rule.LocalPortEnd, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.LocalPortEnd, ruleNo), gosnmp.Integer, rule.LocalPortEnd}
 	err = snmpset(session, pdu)
 	if err != nil {
 		return
@@ -347,7 +347,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	/* To wygląda na nie wymagane */
 	//fmt.Printf("ExtIP: %s, ", "0.0.0.0"
 	fmt.Printf(". ")
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtIP, ruleNo), gosnmp.OctetString, []byte{0, 0, 0, 0}, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.ExtIP, ruleNo), gosnmp.OctetString, []byte{0, 0, 0, 0}}
 	//_, err = session.Set(pdu)
 	err = snmpset(session, pdu)
 	if err != nil {
@@ -357,7 +357,7 @@ func CmSetForwardRule(session gosnmp.GoSNMP, rule *CgForwardRule, oids *CgForwar
 	//fmt.Printf("Description: %s, ", rule.RuleName)
 	fmt.Printf(". ")
 	//fmt.Println(oids.RuleName)
-	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.RuleName, ruleNo), gosnmp.OctetString, rule.RuleName, logger}
+	pdu[0] = gosnmp.SnmpPDU{AddOidSuffix(oids.RuleName, ruleNo), gosnmp.OctetString, rule.RuleName}
 	err = snmpset(session, pdu)
 	if err != nil {
 		return

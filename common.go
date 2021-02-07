@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soniah/gosnmp"
+	"github.com/gosnmp/gosnmp"
 )
 
 // Protocol type used insted uint
