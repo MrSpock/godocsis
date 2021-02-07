@@ -16,7 +16,7 @@ var (
 func printVerbose(cmd godocsis.CM) {
 	fmt.Printf("%s ", cmd.IPaddr)
 	fmt.Printf("US(dBmV):%.01f ", float32(cmd.RF.USLevel[0])/10)
-	separator := ","
+	separator := ", "
 	fmt.Printf("DS(dBmV):")
 	for no, ds := range cmd.RF.DSLevel {
 		if no == cmd.RF.DsBondingSize()-1 {

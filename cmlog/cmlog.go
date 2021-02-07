@@ -16,12 +16,13 @@ var (
 
 func printJSON(data []string) {
 	var rs []string
+	fmt.Println("{ \"log\": [")
 	for i, v := range data {
-		rs = append(rs, fmt.Sprintf("\n{\n\t\"id\": \"%d\",\n\t\"value\": \"%s\"\n}", i, v))
+		rs = append(rs, fmt.Sprintf("\n{\n\t\"id\": \"%d\",\n\t\"message\": \"%s\"\n}", i, v))
 	}
-	fmt.Println("[")
+	//fmt.Println("{")
 	fmt.Println(strings.Join(rs, ","))
-	fmt.Println("]")
+	fmt.Println("]}")
 }
 func main() {
 	flag.Parse()

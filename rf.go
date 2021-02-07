@@ -11,9 +11,9 @@ import (
 
 // Return Cable modem struct with filled fields related to CM RF parameters
 // This will work on any cable modem since those are generic DOCSIS MIBS
-func RFLevel(session gosnmp.GoSNMP) (CmtsCM, error) {
+func RFLevel(session gosnmp.GoSNMP) (CM, error) {
 	//Session.Target = ip
-	var cm CmtsCM
+	var cm CM
 	cm.IPaddr = session.Target
 	//var rfdata RFParams
 	DSLevel, err := snmpwalk(session, DsOid)

@@ -35,7 +35,7 @@ func CmtsGetModemList(session gosnmp.GoSNMP) (CableModems, error) {
 		//fmt.Println("CMGET:", ok)
 		if !ok {
 			//log.Println("Creating CM with id", cmId)
-			cms[cmId] = &CmtsCM{}
+			cms[cmId] = &CM{}
 			//log.Println(cms)
 		}
 		//fmt.Println("CMS:", cms)

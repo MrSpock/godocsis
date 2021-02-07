@@ -14,7 +14,7 @@ import (
 type CmProtocol int
 
 // cable modem structure
-type CmtsCM struct {
+type CM struct {
 	CmtsIndex int
 	IPaddr    string
 	RouterIP  string
@@ -24,7 +24,7 @@ type CmtsCM struct {
 	//	Devices   []cgConnectedDevices
 }
 
-type CableModems map[int]*CmtsCM
+type CableModems map[int]*CM
 
 var logger = log.New(os.Stderr, "cm.go", 0)
 
@@ -50,7 +50,7 @@ func ResetCm(host string, community string) error {
 
 // GetRouterIP return built-in e-Router external (WAN) ip address
 // used for NAT all user traffic
-func GetRouterIP(session gosnmp.GoSNMP) (cm CmtsCM, err error) {
+func GetRouterIP(session gosnmp.GoSNMP) (cm CM, err error) {
 	err = session.Connect()
 	defer session.Conn.Close()
 	if err != nil {
